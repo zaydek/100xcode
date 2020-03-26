@@ -107,13 +107,13 @@ func main() {
 		ACCESS_SECRET   = os.Getenv("ACCESS_SECRET")
 	)
 	if CONSUMER_KEY == "" {
-		log.Fatal("CONSUMER_KEY cannot be empty")
+		log.Fatal("env CONSUMER_KEY cannot be empty")
 	} else if CONSUMER_SECRET == "" {
-		log.Fatal("CONSUMER_SECRET cannot be empty")
+		log.Fatal("env CONSUMER_SECRET cannot be empty")
 	} else if ACCESS_KEY == "" {
-		log.Fatal("ACCESS_KEY cannot be empty")
+		log.Fatal("env ACCESS_KEY cannot be empty")
 	} else if ACCESS_SECRET == "" {
-		log.Fatal("ACCESS_SECRET cannot be empty")
+		log.Fatal("env ACCESS_SECRET cannot be empty")
 	}
 	user := Auth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
 	log.Printf("…started")
