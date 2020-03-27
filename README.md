@@ -1,4 +1,4 @@
-# The #100DaysOfCode bot 🤖
+# The #100DaysOfCode Twitter bot 🤖
 
 [@100xcode](https://twitter.com/100xcode) celebrates you as you are learning how to code by _instantly_ interacting with your progress tweets. Once you tweet, the bot checks whether your tweet is relevant to #100DaysOrCode. If relevant, the bot will immediately like/retweet/follow you. Please note that the bot _sometimes_ cannot follow you due to limitations on behalf of Twitter’s API.
 
