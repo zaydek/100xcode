@@ -99,7 +99,7 @@ func (a *Account) Follow(tweet *twitter.Tweet) error {
 }
 
 func main() {
-	log.Printf("starting…")
+	log.Printf("starting...")
 	var (
 		CONSUMER_KEY    = os.Getenv("CONSUMER_KEY")
 		CONSUMER_SECRET = os.Getenv("CONSUMER_SECRET")
@@ -116,7 +116,7 @@ func main() {
 		log.Fatal("env ACCESS_SECRET cannot be empty")
 	}
 	user := Auth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
-	log.Printf("…started")
+	log.Printf("...started")
 	for tweet := range user.MustStream([]string{"#100DaysOfCode"}) {
 		statusURL := getStatusURL(tweet)
 		if !strings.HasPrefix(tweet.Text, "I'm publicly committing to the 100DaysOfCode") && !re.MatchString(tweet.Text) {
