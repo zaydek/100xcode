@@ -6,7 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"sync"
+	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
@@ -123,32 +123,16 @@ func main() {
 			// No-op
 			continue
 		}
-		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			err := user.Like(tweet)
-			if err != nil {
-				log.Print(err)
-			}
-		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			err := user.Retweet(tweet)
-			if err != nil {
-				log.Print(err)
-			}
-		}()
-		// wg.Add(1)
-		// go func() {
-		// 	defer wg.Done()
-		// 	err := user.Follow(tweet)
-		// 	if err != nil {
-		// 		log.Print(err)
-		// 	}
-		// }()
-		wg.Wait()
+		var err error
+		err = user.Retweet(tweet)
+		if err != nil {
+			log.Print(err)
+		}
+		time.Sleep(5 * time.Second)
+		err = user.Like(tweet)
+		if err != nil {
+			log.Print(err)
+		}
 		log.Printf("retweeted %s", statusURL)
 	}
 }
