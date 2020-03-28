@@ -122,6 +122,7 @@ func main() {
 		err := user.Retweet(tweet)
 		if err != nil {
 			log.Print(err)
+			continue
 		}
 		log.Printf("retweeted %s", statusURL)
 	}
