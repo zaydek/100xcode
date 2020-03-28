@@ -6,14 +6,10 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 )
-
-// // https://100daysofcode.com
-// var day0Re = regexp.MustCompile(`(?i)I'm publicly committing to the #?100DaysOfCode`)
 
 // (?i)                    -- case-insensitive
 // ^                       -- start            *required
@@ -123,13 +119,7 @@ func main() {
 			// No-op
 			continue
 		}
-		var err error
-		err = user.Retweet(tweet)
-		if err != nil {
-			log.Print(err)
-		}
-		time.Sleep(5 * time.Second)
-		err = user.Like(tweet)
+		err := user.Retweet(tweet)
 		if err != nil {
 			log.Print(err)
 		}
