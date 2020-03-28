@@ -140,14 +140,14 @@ func main() {
 				log.Print(err)
 			}
 		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			err := user.Follow(tweet)
-			if err != nil {
-				log.Print(err)
-			}
-		}()
+		// wg.Add(1)
+		// go func() {
+		// 	defer wg.Done()
+		// 	err := user.Follow(tweet)
+		// 	if err != nil {
+		// 		log.Print(err)
+		// 	}
+		// }()
 		wg.Wait()
 		log.Printf("retweeted %s", statusURL)
 	}
