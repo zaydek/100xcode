@@ -1,4 +1,4 @@
-# The #100DaysOfCode Twitter Bot 🤖
+# 100xcode
 
 The [@100xcode](https://twitter.com/100xcode) bot \*only\* retweets your [#100DaysOfCode](https://twitter.com/hashtag/100DaysOfCode) progress tweets! 😎
 
