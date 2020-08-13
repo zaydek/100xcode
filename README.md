@@ -1,4 +1,4 @@
-# @100xcode: A [#100DaysOfCode](https://twitter.com/hashtag/100DaysOfCode) Twitter Bot 🤖
+# A [#100DaysOfCode](https://twitter.com/hashtag/100DaysOfCode) Twitter Bot 🤖
 
 <br>
 <div align="center">
