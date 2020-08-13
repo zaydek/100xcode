@@ -2,7 +2,7 @@
 
 <br>
 <div align="center">
-	<img src="https://i.ibb.co/h7s2NDb/twitter-com-100xcode.png" width="640">
+	<img src="https://i.ibb.co/kHKqTQj/twitter-com-100xcode.png" width="480">
 </div>
 <br>
 
