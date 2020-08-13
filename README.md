@@ -12,7 +12,7 @@
 
 ## License
 
-[@100xcode](https://twitter.com/@100xcode) is open source software licensed as MIT.
+Open source software licensed as MIT.
 
 <!--
 
