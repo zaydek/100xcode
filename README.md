@@ -10,6 +10,10 @@
 
 <!-- The bot’s code is open source (written in Go) and hosted on Google Cloud Platform using an _almost free_ virtual machine. Still, the bot is deployed using Docker, making deployments 100% serverless. If you’re curious about any of this, you’re more than welcome to [DM me on Twitter](https://twitter.com/username_ZAYDEK). Please also DM me concerning abuse. -->
 
+## License
+
+[heroicons.dev](https://heroicons.dev) is open source software licensed as MIT.
+
 <!--
 
 ## Learn How to Program for Free! 💯
