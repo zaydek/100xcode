@@ -1,4 +1,4 @@
-# A [#100DaysOfCode](https://twitter.com/hashtag/100DaysOfCode) Twitter Bot 🤖
+# [@100xcode](https://twitter.com/100xcode) 🤖
 
 <br>
 <div align="center">
@@ -12,7 +12,7 @@
 
 ## License
 
-[heroicons.dev](https://heroicons.dev) is open source software licensed as MIT.
+[@100xcode](https://twitter.com/@100xcode) is open source software licensed as MIT.
 
 <!--
 
