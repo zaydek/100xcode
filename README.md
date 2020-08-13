@@ -1,4 +1,4 @@
-# The @100xcode Bot 🤖
+# The @100xcode Twitter Bot 🤖
 
 <br>
 <div align="center">
