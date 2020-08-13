@@ -1,4 +1,4 @@
-# 100xcode: A #100DaysOfCode Twitter bot. 🤖
+# @100xcode: A #100DaysOfCode Twitter bot. 🤖
 
 <br>
 <div align="center">
