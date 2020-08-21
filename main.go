@@ -12,12 +12,12 @@ import (
 )
 
 // (?i)                     -- case-insensitive
-// ^                        -- start            *required
+// ^                        -- start              *required
 // 	(?:#100daysofcode\W+)?  -- #100DaysOfCode
 // 	(?:r(?:ounds?)?\W*\d+)? -- round(s?) ? OR r ?
 // 	\W*                     -- separator
-// 	d(?:ays?)?\W*(\d+)      -- day(s?) ? OR d ?     *required
-// (?:\W+|$)                -- separator or EOF *required
+// 	d(?:ays?)?\W*(\d+)      -- day(s?) ? OR d ?   *required
+// (?:\W+|$)                -- separator or EOF   *required
 //
 // https://regex101.com/r/VCM8l4/3
 var re = regexp.MustCompile(`(?i)^(?:#100DaysOfCode\W+)?(?:r(?:ounds?)?\W*\d+)?\W*d(?:ays?)?\W*(\d+)(?:\W+|$)`)
