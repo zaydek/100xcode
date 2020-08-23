@@ -13,9 +13,9 @@ import (
 
 // (?i)                     -- case-insensitive
 // ^                        -- start              *required
-// 	(?:#100daysofcode\W+)?  -- #100DaysOfCode
-// 	(?:r(?:ounds?)?\W*\d+)? -- round(s?) ? OR r ?
-// 	\W*                     -- separator
+// 	(?:#100daysofcode\W+)?  -- #100DaysOfCode     *optional
+// 	(?:r(?:ounds?)?\W*\d+)? -- round(s?) ? OR r ? *optional
+// 	\W*                     -- separator          *optional
 // 	d(?:ays?)?\W*(\d+)      -- day(s?) ? OR d ?   *required
 // (?:\W+|$)                -- separator or EOF   *required
 //
@@ -114,11 +114,21 @@ func main() {
 	user := Auth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
 	log.Printf("...started")
 	for tweet := range user.MustStream([]string{"#100DaysOfCode"}) {
+		// Screen tweets:
 		statusURL := getStatusURL(tweet)
 		if !strings.HasPrefix(tweet.Text, "I'm publicly committing to the 100DaysOfCode") && !re.MatchString(tweet.Text) {
 			// No-op
 			continue
 		}
+		// Screen usernames:
+		switch strings.ToLower(tweet.User.ScreenName) {
+		case "horpeyloaded":
+			fallthrough
+		case "robertial":
+			// No-op
+			continue
+		}
+		// OK:
 		err := user.Retweet(tweet)
 		if err != nil {
 			log.Print(err)
