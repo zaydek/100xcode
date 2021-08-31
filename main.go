@@ -6,9 +6,18 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/dghubble/go-twitter/twitter"
-	"github.com/dghubble/oauth1"
+)
+
+var (
+	CONSUMER_KEY    = os.Getenv("CONSUMER_KEY")
+	CONSUMER_SECRET = os.Getenv("CONSUMER_SECRET")
+	ACCESS_KEY      = os.Getenv("ACCESS_KEY")
+	ACCESS_SECRET   = os.Getenv("ACCESS_SECRET")
+
+	CHECK_FOR_BLOCKED_SCREENNAMES_INTERVAL = 15 * time.Minute
 )
 
 // (?i)                     -- case-insensitive
@@ -20,88 +29,59 @@ import (
 // (?:\W+|$)                -- separator or EOF   *required
 //
 // https://regex101.com/r/VCM8l4/3
-var re = regexp.MustCompile(`(?i)^(?:#100DaysOfCode\W+)?(?:r(?:ounds?)?\W*\d+)?\W*d(?:ays?)?\W*(\d+)(?:\W+|$)`)
+var progressRegex = regexp.MustCompile(`(?i)^(?:#100DaysOfCode\W+)?(?:r(?:ounds?)?\W*\d+)?\W*d(?:ays?)?\W*(\d+)(?:\W+|$)`)
 
-type Account struct{ *twitter.Client }
+////////////////////////////////////////////////////////////////////////////////
 
-// Authenticates an account.
-func Auth(ConsumerKey, ConsumerSecret, AccessKey, AccessSecret string) *Account {
-	config := oauth1.NewConfig(ConsumerKey, ConsumerSecret)
-	httpClient := config.Client(oauth1.NoContext, oauth1.NewToken(AccessKey, AccessSecret))
-	client := twitter.NewClient(httpClient)
-	return &Account{client}
+type BlockedService struct {
+	interval                        time.Duration
+	shouldRefreshBlockedScreenNames bool
+	blockedScreenNamesMap           map[string]struct{}
+
+	*TwitterOAuth1Authentication
 }
 
-// Streams tweets based on search terms.
-func (a *Account) MustStream(terms []string) <-chan *twitter.Tweet {
-	params := &twitter.StreamFilterParams{Track: terms}
-	ch, err := a.Streams.Filter(params)
-	must(err)
-	out := make(chan *twitter.Tweet)
+func newBlockedService(twitterOAuth1Auth *TwitterOAuth1Authentication, interval time.Duration) *BlockedService {
+	srv := &BlockedService{
+		interval:                        interval,
+		shouldRefreshBlockedScreenNames: true,
+		blockedScreenNamesMap:           map[string]struct{}{},
+	}
+	srv.Refresh()
 	go func() {
-		defer func() { ch.Stop(); close(out) }()
-		for msg := range ch.Messages {
-			tweet, ok := msg.(*twitter.Tweet)
-			if !ok {
-				log.Printf("(error) msg.(*twitter.Tweet): tweet=%+v", tweet)
-				continue
-			} else if tweet.RetweetedStatus != nil { // Ignore RTs
-				// No-op
-				continue
-			}
-			out <- tweet
+		ticker := time.NewTicker(interval)
+		for ; true; <-ticker.C {
+			srv.shouldRefreshBlockedScreenNames = true
 		}
 	}()
-	return out
+	return srv
 }
 
-// Gets a status URL for a tweet.
-func getStatusURL(tweet *twitter.Tweet) string {
-	return "https://twitter.com/" + tweet.User.ScreenName + "/status/" + fmt.Sprint(tweet.ID)
-}
-
-func must(err error) {
-	if err == nil {
-		// No-op
-		return
-	}
-	panic(err)
-}
-
-func (a *Account) Retweet(tweet *twitter.Tweet) error {
-	if tweet.Retweeted {
+func (b *BlockedService) Refresh() error {
+	if !b.shouldRefreshBlockedScreenNames {
 		return nil
 	}
-	_, _, err := a.Statuses.Retweet(tweet.ID, nil)
-	return err
-}
-
-func (a *Account) Like(tweet *twitter.Tweet) error {
-	if tweet.Favorited {
-		return nil
+	screenNames, err := b.GetBlockedScreenNames()
+	if err != nil {
+		return err
 	}
-	params := &twitter.FavoriteCreateParams{ID: tweet.ID}
-	_, _, err := a.Favorites.Create(params)
-	return err
-}
-
-func (a *Account) Follow(tweet *twitter.Tweet) error {
-	if tweet.User.Following {
-		return nil
+	for _, screenName := range screenNames {
+		b.blockedScreenNamesMap[strings.ToLower(screenName)] = struct{}{}
 	}
-	params := &twitter.FriendshipCreateParams{UserID: tweet.User.ID}
-	_, _, err := a.Friendships.Create(params)
-	return err
+	b.shouldRefreshBlockedScreenNames = false
+	return nil
 }
 
-func main() {
-	log.Printf("starting...")
-	var (
-		CONSUMER_KEY    = os.Getenv("CONSUMER_KEY")
-		CONSUMER_SECRET = os.Getenv("CONSUMER_SECRET")
-		ACCESS_KEY      = os.Getenv("ACCESS_KEY")
-		ACCESS_SECRET   = os.Getenv("ACCESS_SECRET")
-	)
+func (b *BlockedService) IsBlocked(screenName string) bool {
+	_, ok := b.blockedScreenNamesMap[strings.ToLower(screenName)]
+	return ok
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+func init() {
+	log.Println("initializing")
+
 	if CONSUMER_KEY == "" {
 		log.Fatal("env CONSUMER_KEY cannot be empty")
 	} else if CONSUMER_SECRET == "" {
@@ -111,29 +91,63 @@ func main() {
 	} else if ACCESS_SECRET == "" {
 		log.Fatal("env ACCESS_SECRET cannot be empty")
 	}
-	user := Auth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET)
-	log.Printf("...started")
-	for tweet := range user.MustStream([]string{"#100DaysOfCode"}) {
-		// Screen tweets:
-		statusURL := getStatusURL(tweet)
-		if !strings.HasPrefix(tweet.Text, "I'm publicly committing to the 100DaysOfCode") && !re.MatchString(tweet.Text) {
-			// No-op
+}
+
+func isRelevant(tweet *twitter.Tweet) bool {
+	return strings.HasPrefix(tweet.Text, "I'm publicly committing to the 100DaysOfCode") || progressRegex.MatchString(tweet.Text)
+}
+
+func main() {
+	// Connect to the Twitter API
+	api := newTwitterAPIAuthentication(OAuth1AuthenticationParameters{
+		ConsumerKey:    CONSUMER_KEY,
+		ConsumerSecret: CONSUMER_SECRET,
+		AccessKey:      ACCESS_KEY,
+		AccessSecret:   ACCESS_SECRET,
+	})
+	if api == nil {
+		panic("failed to authenticate twitter api")
+	}
+	log.Println("connected to twitter api")
+
+	// Connect to the Twitter OAuth1 API (for checking for blocker screen names)
+	twitterOAuth1Auth := newTwitterOAuth1Authentication(OAuth1AuthenticationParameters{
+		ConsumerKey:    CONSUMER_KEY,
+		ConsumerSecret: CONSUMER_SECRET,
+		AccessKey:      ACCESS_KEY,
+		AccessSecret:   ACCESS_SECRET,
+	})
+	if twitterOAuth1Auth == nil {
+		panic("failed to authenticate twitter oauth1 api")
+	}
+	log.Println("connected to twitter oauth1 api")
+
+	// Create a blocked service and start streaming `"#100DaysOfCode"` tweets
+	blockedService := newBlockedService(twitterOAuth1Auth, CHECK_FOR_BLOCKED_SCREENNAMES_INTERVAL)
+	for tweet := range api.MustStream([]string{"#100DaysOfCode"}) {
+		var (
+			username = strings.ToLower(tweet.User.ScreenName)
+			url      = fmt.Sprintf("https://twitter.com/%s/status/%s", username, fmt.Sprint(tweet.ID))
+		)
+		if !isRelevant(tweet) {
+			log.Printf("ignored irrelevant user @%s tweet %s\n",
+				username, url)
 			continue
 		}
-		// Screen usernames:
-		switch strings.ToLower(tweet.User.ScreenName) {
-		case "horpeyloaded":
-			fallthrough
-		case "robertial":
-			// No-op
+		if err := blockedService.Refresh(); err != nil {
+			panic(fmt.Sprintf("failed to refresh blocked service; %s", err))
+		}
+		if blockedService.IsBlocked(tweet.User.ScreenName) {
+			log.Printf("ignored blocked user @%s tweet %s\n",
+				username, url)
 			continue
 		}
-		// OK:
-		err := user.Retweet(tweet)
-		if err != nil {
-			log.Print(err)
+		if err := api.Retweet(tweet); err != nil {
+			log.Printf("cannot retweet user @%s tweet %s; %s\n",
+				username, url, err)
 			continue
 		}
-		log.Printf("retweeted %s", statusURL)
+		log.Printf("retweeted user @%s tweet %s\n",
+			username, url)
 	}
 }
