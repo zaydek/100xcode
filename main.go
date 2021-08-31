@@ -46,6 +46,8 @@ func newBlockedService(twitterOAuth1Auth *TwitterOAuth1Authentication, interval 
 		interval:                        interval,
 		shouldRefreshBlockedScreenNames: true,
 		blockedScreenNamesMap:           map[string]struct{}{},
+
+		TwitterOAuth1Authentication: twitterOAuth1Auth,
 	}
 	srv.Refresh()
 	go func() {

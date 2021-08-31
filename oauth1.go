@@ -32,10 +32,10 @@ func newOAuth1Authentication(params OAuth1AuthenticationParameters) *OAuth1Authe
 
 func (a *OAuth1Authentication) Get(url string) ([]byte, error) {
 	resp, err := a.Client.Get(url)
-	defer resp.Body.Close()
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
