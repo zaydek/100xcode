@@ -37,7 +37,6 @@ func (a *TwitterAPIAuthentication) MustStream(terms []string) <-chan *twitter.Tw
 				log.Printf("(error) msg.(*twitter.Tweet): tweet=%+v", tweet)
 				continue
 			} else if tweet.RetweetedStatus != nil { // Ignore RTs
-				// No-op
 				continue
 			}
 			out <- tweet

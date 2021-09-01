@@ -96,7 +96,8 @@ func init() {
 }
 
 func isRelevant(tweet *twitter.Tweet) bool {
-	return strings.HasPrefix(tweet.Text, "I'm publicly committing to the 100DaysOfCode") || progressRegex.MatchString(tweet.Text)
+	return strings.HasPrefix(tweet.Text, "I'm publicly committing to the 100DaysOfCode") ||
+		progressRegex.MatchString(tweet.Text)
 }
 
 func main() {
@@ -131,11 +132,13 @@ func main() {
 			username = strings.ToLower(tweet.User.ScreenName)
 			url      = fmt.Sprintf("https://twitter.com/%s/status/%s", username, fmt.Sprint(tweet.ID))
 		)
+		// Check for irrelevant tweets
 		if !isRelevant(tweet) {
 			log.Printf("ignored irrelevant user @%s tweet %s\n",
 				username, url)
 			continue
 		}
+		// Check for blocked users
 		if err := blockedService.Refresh(); err != nil {
 			panic(fmt.Sprintf("failed to refresh blocked service; %s", err))
 		}
@@ -144,12 +147,21 @@ func main() {
 				username, url)
 			continue
 		}
+		// Retweet tweet (no-ops if already retweeted)
 		if err := api.Retweet(tweet); err != nil {
 			log.Printf("cannot retweet user @%s tweet %s; %s\n",
 				username, url, err)
 			continue
 		}
 		log.Printf("retweeted user @%s tweet %s\n",
+			username, url)
+		// Follow user (no-ops if already following)
+		if err := api.Follow(tweet); err != nil {
+			log.Printf("cannot follow user @%s tweet %s; %s\n",
+				username, url, err)
+			continue
+		}
+		log.Printf("followed user @%s tweet %s\n",
 			username, url)
 	}
 }
